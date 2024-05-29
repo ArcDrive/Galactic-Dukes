@@ -1,0 +1,176 @@
+[gd_scene load_steps=5 format=3 uid="uid://bn425loak5nuc"]
+
+[ext_resource type="Texture2D" uid="uid://bs1hwogalqdf1" path="res://assets/images/backgrounds/space_background_procedural.png" id="1_edbe0"]
+[ext_resource type="PackedScene" uid="uid://btl5epxbkg53u" path="res://scenes/system.tscn" id="3_6g3cr"]
+[ext_resource type="Script" path="res://scripts/camera.gd" id="4_1ldwh"]
+
+[sub_resource type="GDScript" id="GDScript_r3k6h"]
+script/source = "extends Node2D
+
+@export var system_scene: PackedScene
+
+var port = 10191
+
+var stars = []
+var system
+
+func _ready():
+	
+	draw_stars([])
+	draw_links()
+
+func draw_stars(highlights = []):
+	print(\"Drawing Stars\")
+	for star in stars:
+		system = system_scene.instantiate()
+		system.position = star.position
+		
+		if star.index in highlights:
+			var dot = system.get_node(\"sprite_dot\")
+			dot.modulate = Color(0, 1, 0, 1)
+			system.set_meta(\"is_highlighted\", true)
+		else:
+			system.set_meta(\"is_highlighted\", false)
+		
+		var label = system.get_node(\"Label\")
+		label.text = str(star.index)
+		system.z_index = 1
+		
+		system.system_clicked.connect(_on_System_clicked)
+		
+		add_child(system)
+
+func draw_links():
+	print(\"Drawing Links\")
+	for star in stars:
+		for linked_star_index in star.links:
+			var line = Line2D.new()
+			line.width = 2
+			line.default_color = Color(1, 1, 1, 0.5)
+			line.points = [star.position, stars[linked_star_index].position]
+			add_child(line)
+
+func _on_System_clicked(index):
+	print(\"System \" + str(index) + \" clicked!\")
+#	print(\"System info:\")
+#	print(stars[index])
+#	print(\"System link angles in degrees:\")
+#	for link in stars[index].links:
+#		var vec = stars[link].position - stars[index].position
+#		print(\"The link to system \" + str(link) + \" is at \" + str(rad_to_deg(vec.angle())) + \" degrees.\")
+#		for link2 in stars[index].links:
+#			if link != link2:
+#				var link1_relative = stars[link].position - stars[index].position
+#				var link2_relative = stars[link2].position - stars[index].position
+#				var link_angle = rad_to_deg(link1_relative.angle_to(link2_relative))
+#				print(\"Angle from \" + str(link) + \" to \" + str(link2) + \" is: \" + str(link_angle))
+
+
+
+func _on_join_button_pressed():
+	var port_line = $\"../../CanvasLayer/MainMenu/MarginContainer/VBoxContainer/PortEntry\"
+	var address_line = $\"../../CanvasLayer/MainMenu/MarginContainer/VBoxContainer/AddressEntry\"
+	if port_line.text.is_valid_int():
+		port = int(port_line.text)	
+	print(\"Attempting connection to \" + address_line.text + \" on port \" + str(port))
+	
+	var peer = ENetMultiplayerPeer.new()
+	peer.create_client(address_line.text, port)
+	multiplayer.multiplayer_peer = peer
+	
+	multiplayer.connection_failed.connect(_on_connection_failed)
+	multiplayer.connected_to_server.connect(_on_connection_succeeded)
+
+func _on_connection_failed():
+	print(\"Failed to connect\")
+
+func _on_connection_succeeded():
+	print(\"Successfully connected\")
+
+@rpc(\"any_peer\", \"reliable\")
+func set_stars(new_stars):
+	print(\"New stars coming!\")
+	stars = new_stars
+	draw_stars()
+	draw_links()
+	$\"../../CanvasLayer/MainMenu\".visible = false
+
+"
+
+[node name="root2d" type="Node2D"]
+
+[node name="map" type="Node2D" parent="."]
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="map"]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="map/ParallaxBackground"]
+motion_mirroring = Vector2(4096, 4096)
+
+[node name="Sprite2D" type="Sprite2D" parent="map/ParallaxBackground/ParallaxLayer"]
+texture = ExtResource("1_edbe0")
+centered = false
+
+[node name="galaxy" type="Node2D" parent="map"]
+script = SubResource("GDScript_r3k6h")
+system_scene = ExtResource("3_6g3cr")
+
+[node name="text_highlight" type="LineEdit" parent="map/galaxy"]
+offset_left = -55.0
+offset_top = -14.0
+offset_right = 56.0
+offset_bottom = 17.0
+placeholder_text = "type here"
+alignment = 1
+
+[node name="camera" type="Camera2D" parent="."]
+zoom = Vector2(0.75, 0.75)
+position_smoothing_enabled = true
+script = ExtResource("4_1ldwh")
+
+[node name="audio" type="Node2D" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MainMenu" type="PanelContainer" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 412.0
+offset_top = 227.0
+offset_right = -412.0
+offset_bottom = -227.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/MainMenu"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MainMenu/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Label" type="Label" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Main Menu"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="JoinButton" type="Button" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Join"
+
+[node name="AddressEntry" type="LineEdit" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Enter IP Adress Here"
+alignment = 1
+
+[node name="PortEntry" type="LineEdit" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Enter Port Here (Default: 10191)"
+alignment = 1
+
+[connection signal="pressed" from="CanvasLayer/MainMenu/MarginContainer/VBoxContainer/JoinButton" to="map/galaxy" method="_on_join_button_pressed"]

@@ -1,0 +1,199 @@
+[gd_scene load_steps=9 format=3 uid="uid://d1dv302ny47ih"]
+
+[ext_resource type="Script" path="res://scenes/main.gd" id="1_fk4kf"]
+[ext_resource type="Texture2D" uid="uid://bs1hwogalqdf1" path="res://assets/images/backgrounds/space_background_procedural.png" id="1_nty5s"]
+[ext_resource type="Script" path="res://scripts/galaxy.gd" id="2_pmva6"]
+[ext_resource type="PackedScene" uid="uid://btl5epxbkg53u" path="res://scenes/system.tscn" id="3_kole8"]
+[ext_resource type="Script" path="res://scripts/camera.gd" id="3_sfxce"]
+[ext_resource type="Script" path="res://scripts/chatbox.gd" id="5_t3v66"]
+[ext_resource type="Script" path="res://scripts/HostButton.gd" id="6_spkiy"]
+[ext_resource type="Script" path="res://scripts/JoinButton.gd" id="7_1ay12"]
+
+[node name="world" type="Node2D" node_paths=PackedStringArray("galaxy")]
+script = ExtResource("1_fk4kf")
+number_of_stars = 100
+galaxy = NodePath("map/galaxy")
+
+[node name="map" type="Node2D" parent="."]
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="map"]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="map/ParallaxBackground"]
+motion_mirroring = Vector2(4096, 4096)
+
+[node name="Sprite2D" type="Sprite2D" parent="map/ParallaxBackground/ParallaxLayer"]
+texture = ExtResource("1_nty5s")
+centered = false
+
+[node name="galaxy" type="Node2D" parent="map"]
+script = ExtResource("2_pmva6")
+number_of_stars = 200
+system_scene = ExtResource("3_kole8")
+
+[node name="text_highlight" type="LineEdit" parent="map/galaxy"]
+visible = false
+offset_left = -55.0
+offset_top = -14.0
+offset_right = 56.0
+offset_bottom = 17.0
+placeholder_text = "type here"
+alignment = 1
+
+[node name="camera" type="Camera2D" parent="."]
+zoom = Vector2(0.75, 0.75)
+position_smoothing_enabled = true
+script = ExtResource("3_sfxce")
+
+[node name="audio" type="Node2D" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MainMenu" type="PanelContainer" parent="CanvasLayer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -120.0
+offset_right = 160.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/MainMenu"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MainMenu/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Label" type="Label" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Main Menu"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Username Entry" type="LineEdit" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Username"
+alignment = 1
+
+[node name="HostButton" type="Button" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer" node_paths=PackedStringArray("world")]
+layout_mode = 2
+text = "Host
+"
+script = ExtResource("6_spkiy")
+world = NodePath("../../../../..")
+
+[node name="JoinButton" type="Button" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer" node_paths=PackedStringArray("world")]
+layout_mode = 2
+text = "Join"
+script = ExtResource("7_1ay12")
+world = NodePath("../../../../..")
+
+[node name="AddressEntry" type="LineEdit" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Enter IP Adress Here"
+alignment = 1
+
+[node name="PortEntry" type="LineEdit" parent="CanvasLayer/MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Enter Port Here (Default: 10191)"
+alignment = 1
+
+[node name="Chatbox" type="Control" parent="CanvasLayer" node_paths=PackedStringArray("ConsoleText", "GeneralText", "FederationText", "Chat_Line", "ChatBoxContainer", "ChatBoxSpacer", "tabs")]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -616.0
+offset_right = 466.0
+offset_bottom = -16.0
+grow_vertical = 0
+script = ExtResource("5_t3v66")
+ConsoleText = NodePath("VBoxContainer/ChatboxPanel/VBoxContainer/ConsoleText")
+GeneralText = NodePath("VBoxContainer/ChatboxPanel/VBoxContainer/GeneralText")
+FederationText = NodePath("VBoxContainer/ChatboxPanel/VBoxContainer/FederationText")
+Chat_Line = NodePath("VBoxContainer/ChatboxPanel/VBoxContainer/LineEdit")
+ChatBoxContainer = NodePath("VBoxContainer/ChatboxPanel")
+ChatBoxSpacer = NodePath("VBoxContainer/Spacer")
+tabs = NodePath("VBoxContainer/ChatboxPanel/VBoxContainer/TabBar")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Chatbox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 2
+
+[node name="Spacer" type="Control" parent="CanvasLayer/Chatbox/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ChatboxPanel" type="PanelContainer" parent="CanvasLayer/Chatbox/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Chatbox/VBoxContainer/ChatboxPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 2
+
+[node name="ConsoleText" type="RichTextLabel" parent="CanvasLayer/Chatbox/VBoxContainer/ChatboxPanel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Beginning of console output
+"
+scroll_following = true
+
+[node name="GeneralText" type="RichTextLabel" parent="CanvasLayer/Chatbox/VBoxContainer/ChatboxPanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Beginning of general chat
+"
+fit_content = true
+scroll_following = true
+
+[node name="FederationText" type="RichTextLabel" parent="CanvasLayer/Chatbox/VBoxContainer/ChatboxPanel/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Beginning of Federation chat
+"
+fit_content = true
+scroll_following = true
+
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer/Chatbox/VBoxContainer/ChatboxPanel/VBoxContainer"]
+layout_mode = 2
+context_menu_enabled = false
+caret_blink = true
+
+[node name="TabBar" type="TabBar" parent="CanvasLayer/Chatbox/VBoxContainer/ChatboxPanel/VBoxContainer"]
+layout_mode = 2
+tab_count = 3
+tab_0/title = "Console"
+tab_1/title = "General"
+tab_2/title = "Federation"
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Chatbox/VBoxContainer"]
+layout_mode = 2
+
+[connection signal="pressed" from="CanvasLayer/MainMenu/MarginContainer/VBoxContainer/HostButton" to="CanvasLayer/MainMenu/MarginContainer/VBoxContainer/HostButton" method="_on_pressed"]
+[connection signal="pressed" from="CanvasLayer/MainMenu/MarginContainer/VBoxContainer/JoinButton" to="CanvasLayer/MainMenu/MarginContainer/VBoxContainer/JoinButton" method="_on_pressed"]
+[connection signal="text_submitted" from="CanvasLayer/Chatbox/VBoxContainer/ChatboxPanel/VBoxContainer/LineEdit" to="CanvasLayer/Chatbox" method="_on_line_edit_text_submitted"]
+[connection signal="tab_clicked" from="CanvasLayer/Chatbox/VBoxContainer/ChatboxPanel/VBoxContainer/TabBar" to="CanvasLayer/Chatbox" method="_on_tab_clicked"]
